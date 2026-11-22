@@ -23,36 +23,26 @@ jobs:
           mkdir -p res build/gen build/obj build/apk assets src/com/my/aihub
           cp index.html assets/index.html
 
-          echo '<?xml version="1.0" encoding="utf-8"?>' > AndroidManifest.xml
-          echo '<manifest xmlns:android="http://android.com" package="com.my.aihub" android:versionCode="1" android:versionName="1.0">' >> AndroidManifest.xml
-          echo '    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />' >> AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> AndroidManifest.xml
-          echo '    <application android:label="ИИ-Хаб" android:theme="@android:style/Theme.NoTitleBar" android:usesCleartextTraffic="true">' >> AndroidManifest.xml
-          echo '        <activity android:name=".MainActivity" android:exported="true">' >> AndroidManifest.xml
-          echo '            <intent-filter>' >> AndroidManifest.xml
-          echo '                <action android:name="android.intent.action.MAIN" />' >> AndroidManifest.xml
-          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> AndroidManifest.xml
-          echo '            </intent-filter>' >> AndroidManifest.xml
-          echo '        </activity>' >> AndroidManifest.xml
-          echo '    </application>' >> AndroidManifest.xml
-          echo '</manifest>' >> AndroidManifest.xml
+          cat << 'EOF' > src/com/my/aihub/MainActivity.java
+          package com.my.aihub;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
 
-          echo 'package com.my.aihub;' > src/com/my/aihub/MainActivity.java
-          echo 'import android.app.Activity;' >> src/com/my/aihub/MainActivity.java
-          echo 'import android.os.Bundle;' >> src/com/my/aihub/MainActivity.java
-          echo 'import android.webkit.WebView;' >> src/com/my/aihub/MainActivity.java
-          echo 'import android.webkit.WebViewClient;' >> src/com/my/aihub/MainActivity.java
-          echo 'public class MainActivity extends Activity {' >> src/com/my/aihub/MainActivity.java
-          echo '    @Override protected void onCreate(Bundle savedInstanceState) {' >> src/com/my/aihub/MainActivity.java
-          echo '        super.onCreate(savedInstanceState);' >> src/com/my/aihub/MainActivity.java
-          echo '        WebView webView = new WebView(this);' >> src/com/my/aihub/MainActivity.java
-          echo '        webView.getSettings().setJavaScriptEnabled(true);' >> src/com/my/aihub/MainActivity.java
-          echo '        webView.getSettings().setDomStorageEnabled(true);' >> src/com/my/aihub/MainActivity.java
-          echo '        webView.setWebViewClient(new WebViewClient());' >> src/com/my/aihub/MainActivity.java
-          echo '        webView.loadUrl("file:///android_asset/index.html");' >> src/com/my/aihub/MainActivity.java
-          echo '        setContentView(webView);' >> src/com/my/aihub/MainActivity.java
-          echo '    }' >> src/com/my/aihub/MainActivity.java
-          echo '}' >> src/com/my/aihub/MainActivity.java
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  WebView webView = new WebView(this);
+                  webView.getSettings().setJavaScriptEnabled(true);
+                  webView.getSettings().setDomStorageEnabled(true);
+                  webView.setWebViewClient(new WebViewClient());
+                  webView.loadUrl("file:///android_asset/index.html");
+                  setContentView(webView);
+              }
+          }
+          EOF
 
           $BUILD_TOOLS/aapt package -f -m -J build/gen -S res -M AndroidManifest.xml -I $PLATFORM -A assets -F build/apk/unsigned.apk
           javac -source 1.8 -target 1.8 -bootclasspath $PLATFORM -classpath $PLATFORM -d build/obj src/com/my/aihub/MainActivity.java
