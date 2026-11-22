@@ -89,7 +89,7 @@ const tabsEl = document.getElementById("tabs");
 const verSel = document.getElementById("version");
 const keyInput = document.getElementById("apiKey");
 
-keyInput.value = localStorage.getItem("hf_key") || localStorage.getItem("or_key") || "";
+keyInput.value = localStorage.getItem("hf_key") || "";
 if (!keyInput.value) document.getElementById("key-box").style.display = "flex";
 
 function renderTabs() {
@@ -116,7 +116,11 @@ function toggleKey() {
   const b = document.getElementById("key-box");
   b.style.display = b.style.display === "flex" ? "none" : "flex";
 }
-function saveKeys() { localStorage.setItem("hf_key", keyInput.value.trim()); }
+function saveKeys() {
+  const clean = keyInput.value.replace(/[^a-zA-Z0-9_-]/g, "");
+  keyInput.value = clean;
+  localStorage.setItem("hf_key", clean);
+}
 function clearChat() { messages = []; document.getElementById("chat").innerHTML = ""; }
 
 function addBubble(role, text, label) {
@@ -140,12 +144,17 @@ function addBubble(role, text, label) {
 async function sendMessage() {
   const promptEl = document.getElementById("prompt");
   const text = promptEl.value.trim();
-  const key = keyInput.value.trim();
+  saveKeys();
+  const key = keyInput.value;
   const modelId = verSel.value;
   const modelName = verSel.options.item(verSel.selectedIndex).text;
   if (!text) return;
 
-  if (!key) { alert("Нажмите '🔑 Токен HF' и вставьте токен Hugging Face (hf_...)!"); toggleKey(); return; }
+  if (!key || !key.startsWith("hf_")) {
+    alert("Вставьте корректный токен Hugging Face (начинается с hf_...)!");
+    document.getElementById("key-box").style.display = "flex";
+    return;
+  }
 
   promptEl.value = "";
   messages.push({ role: "user", content: text });
@@ -161,8 +170,10 @@ async function sendMessage() {
       },
       body: JSON.stringify({ model: modelId, messages: messages, max_tokens: 2048 })
     });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); } catch { throw new Error("Ответ сервера (" + res.status + "): " + raw.slice(0, 150)); }
+    if (!res.ok || data.error) throw new Error((data.error && (data.error.message || JSON.stringify(data.error))) || ("HTTP " + res.status));
     const reply = data.choices.at(0).message.content;
     botBody.textContent = reply;
     messages.push({ role: "assistant", content: reply });
