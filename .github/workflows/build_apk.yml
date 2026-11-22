@@ -24,16 +24,18 @@ jobs:
           cp index.html assets/index.html
 
           python3 -c '
-          ns = "http://" + "://android.com"
+          c = chr(58)
+          ns = "http" + c + "//://android.com"
+          a = "android" + c
           manifest = f"""<?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="{ns}" package="com.my.aihub" android:versionCode="1" android:versionName="1.0">
-              <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
-              <uses-permission android:name="android.permission.INTERNET" />
-              <application android:label="ИИ-Хаб" android:theme="@android:style/Theme.NoTitleBar" android:usesCleartextTraffic="true">
-                  <activity android:name=".MainActivity" android:exported="true">
+          <manifest xmlns{c}android="{ns}" package="com.my.aihub" {a}versionCode="1" {a}versionName="1.0">
+              <uses-sdk {a}minSdkVersion="24" {a}targetSdkVersion="34" />
+              <uses-permission {a}name="android.permission.INTERNET" />
+              <application {a}label="ИИ-Хаб" {a}theme="@android{c}style/Theme.NoTitleBar" {a}usesCleartextTraffic="true">
+                  <activity {a}name=".MainActivity" {a}exported="true">
                       <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
+                          <action {a}name="android.intent.action.MAIN" />
+                          <category {a}name="android.intent.category.LAUNCHER" />
                       </intent-filter>
                   </activity>
               </application>
