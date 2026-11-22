@@ -24,8 +24,9 @@ jobs:
           cp index.html assets/index.html
 
           python3 -c '
-          manifest = """<?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://android.com" package="com.my.aihub" android:versionCode="1" android:versionName="1.0">
+          ns = "http://" + "://android.com"
+          manifest = f"""<?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="{ns}" package="com.my.aihub" android:versionCode="1" android:versionName="1.0">
               <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
               <uses-permission android:name="android.permission.INTERNET" />
               <application android:label="ИИ-Хаб" android:theme="@android:style/Theme.NoTitleBar" android:usesCleartextTraffic="true">
