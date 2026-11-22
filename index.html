@@ -20,6 +20,7 @@
   #key-box { display: none; flex-direction: column; gap: 6px; margin-top: 2px; }
   #chat { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
   .msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; }
+  .msg-tag { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: block; }
   .user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
   .assistant { align-self: flex-start; background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
   footer { padding: 10px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 8px; }
@@ -32,13 +33,12 @@
   <div class="top-row">
     <h1>Личный ИИ-Хаб</h1>
     <div>
-      <button class="btn-icon" onclick="toggleKey()">🔑 Ключи</button>
+      <button class="btn-icon" onclick="toggleKey()">🔑 Токен HF</button>
       <button class="btn-icon" onclick="clearChat()">🗑️</button>
     </div>
   </div>
   <div id="key-box">
-    <input type="password" id="apiKey" placeholder="Ключ OpenRouter (sk-or-v1-...)" onchange="saveKeys()">
-    <input type="password" id="ruKey" placeholder="Опционально: Ключ Яндекса / Сбера (для Алисы и ГигаЧата)" onchange="saveKeys()">
+    <input type="password" id="apiKey" placeholder="Вставьте токен Hugging Face (hf_...)" onchange="saveKeys()">
   </div>
   <div class="tabs" id="tabs"></div>
   <select id="version"></select>
@@ -54,74 +54,32 @@
 <script>
 const MODELS = {
   "DeepSeek": {
-    "DeepSeek V4.1 Flash (Новейшая)": "deepseek/deepseek-v4.1-flash",
-    "DeepSeek V4 Pro (Флагман)": "deepseek/deepseek-v4-pro",
-    "DeepSeek V4 Flash": "deepseek/deepseek-v4-flash",
-    "DeepSeek V3.2": "deepseek/deepseek-v3.2",
-    "DeepSeek V3.1": "deepseek/deepseek-v3.1",
-    "DeepSeek V3": "deepseek/deepseek-chat",
-    "DeepSeek R1 (Рассуждающая)": "deepseek/deepseek-r1",
-    "DeepSeek R1 Distill Llama 70B": "deepseek/deepseek-r1-distill-llama-70b",
-    "DeepSeek V2.5 (Old)": "deepseek/deepseek-chat-v2.5"
-  },
-  "Бесплатные": {
-    "Авто-выбор бесплатной (OpenRouter Free)": "openrouter/free",
-    "NVIDIA Nemotron 3 Ultra (Free)": "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "Google Gemma 4 31B (Free)": "google/gemma-4-31b-it:free",
-    "DeepSeek R1 (Free)": "deepseek/deepseek-r1:free"
-  },
-  "ChatGPT": {
-    "GPT-6 Luna (Новейшая)": "openai/gpt-6-luna",
-    "GPT-5 / o3": "openai/o3",
-    "GPT-4.5 Preview": "openai/gpt-4.5-preview",
-    "GPT-4o": "openai/gpt-4o",
-    "GPT-4o Mini": "openai/gpt-4o-mini",
-    "o3-mini": "openai/o3-mini",
-    "o1 (Рассуждающая)": "openai/o1",
-    "GPT-4 Turbo (Old)": "openai/gpt-4-turbo",
-    "GPT-3.5 Turbo (Old)": "openai/gpt-3.5-turbo"
-  },
-  "ChatGPT Codex": {
-    "GPT-5 Codex / Agent": "openai/codex-mini",
-    "GPT-4o Code / Canvas": "openai/gpt-4o",
-    "o3-mini High (Для кода)": "openai/o3-mini-high",
-    "Qwen 2.5 Coder 32B (Open Codex)": "qwen/qwen-2.5-coder-32b-instruct"
-  },
-  "Claude": {
-    "Claude Opus 5.5 (Новейшая)": "anthropic/claude-opus-5.5",
-    "Claude Sonnet 4": "anthropic/claude-sonnet-4",
-    "Claude Haiku 4.5": "anthropic/claude-haiku-4.5",
-    "Claude 3.7 Sonnet": "anthropic/claude-3.7-sonnet",
-    "Claude 3.5 Sonnet": "anthropic/claude-3.5-sonnet",
-    "Claude 3 Opus (Old)": "anthropic/claude-3-opus",
-    "Claude 3 Haiku (Old)": "anthropic/claude-3-haiku"
-  },
-  "Gemini": {
-    "Gemini 3.8 Flash (Новейшая)": "google/gemini-3.8-flash",
-    "Gemini 2.5 Pro": "google/gemini-2.5-pro",
-    "Gemini 2.5 Flash": "google/gemini-2.5-flash",
-    "Gemini 2.0 Flash": "google/gemini-2.0-flash-001",
-    "Gemini Pro 1.5 (Old)": "google/gemini-pro-1.5"
-  },
-  "Grok": {
-    "Grok 4.7 (Новейшая)": "x-ai/grok-4.7",
-    "Grok-3": "x-ai/grok-3",
-    "Grok-3 Mini": "x-ai/grok-3-mini",
-    "Grok-2 (Old)": "x-ai/grok-2-1212"
+    "DeepSeek V3 (0324)": "deepseek-ai/DeepSeek-V3-0324",
+    "DeepSeek R1 (Рассуждающая)": "deepseek-ai/DeepSeek-R1",
+    "DeepSeek R1 Distill Qwen 32B": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "DeepSeek R1 Distill Llama 70B": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B"
   },
   "Qwen": {
-    "Qwen 3 235B (Новейшая)": "qwen/qwen3-235b-a22b",
-    "Qwen 3 32B": "qwen/qwen3-32b",
-    "QwQ 32B (Рассуждающая)": "qwen/qwq-32b",
-    "Qwen 2.5 72B": "qwen/qwen-2.5-72b-instruct",
-    "Qwen 2 72B (Old)": "qwen/qwen-2-72b-instruct"
+    "Qwen 3 235B (Флагман)": "Qwen/Qwen3-235B-A22B",
+    "Qwen 3 32B": "Qwen/Qwen3-32B",
+    "QwQ 32B (Рассуждающая)": "Qwen/QwQ-32B",
+    "Qwen 2.5 72B Instruct": "Qwen/Qwen2.5-72B-Instruct"
   },
-  "Алиса AI / ГигаЧат": {
-    "YandexGPT 5 Pro (Алиса AI)": "yandexgpt",
-    "YandexGPT 4 Lite (Old)": "yandexgpt-lite",
-    "GigaChat Max (Сбер)": "GigaChat-Max",
-    "GigaChat Pro": "GigaChat-Pro",
-    "GigaChat Lite (Old)": "GigaChat"
+  "Codex / Код": {
+    "Qwen 2.5 Coder 32B": "Qwen/Qwen2.5-Coder-32B-Instruct",
+    "DeepSeek R1 (Для сложного кода)": "deepseek-ai/DeepSeek-R1"
+  },
+  "Llama / Meta": {
+    "Llama 3.3 70B Instruct": "meta-llama/Llama-3.3-70B-Instruct",
+    "Llama 3.1 8B (Быстрая)": "meta-llama/Llama-3.1-8B-Instruct"
+  },
+  "Gemma / Google": {
+    "Gemma 3 27B IT": "google/gemma-3-27b-it",
+    "Gemma 2 27B IT": "google/gemma-2-27b-it"
+  },
+  "Mistral": {
+    "Mistral Small 24B": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "Mistral Nemo 12B": "mistralai/Mistral-Nemo-Instruct-2407"
   }
 };
 
@@ -130,10 +88,8 @@ let messages = [];
 const tabsEl = document.getElementById("tabs");
 const verSel = document.getElementById("version");
 const keyInput = document.getElementById("apiKey");
-const ruKeyInput = document.getElementById("ruKey");
 
-keyInput.value = localStorage.getItem("or_key") || "";
-ruKeyInput.value = localStorage.getItem("ru_key") || "";
+keyInput.value = localStorage.getItem("hf_key") || localStorage.getItem("or_key") || "";
 if (!keyInput.value) document.getElementById("key-box").style.display = "flex";
 
 function renderTabs() {
@@ -160,20 +116,25 @@ function toggleKey() {
   const b = document.getElementById("key-box");
   b.style.display = b.style.display === "flex" ? "none" : "flex";
 }
-function saveKeys() {
-  localStorage.setItem("or_key", keyInput.value.trim());
-  localStorage.setItem("ru_key", ruKeyInput.value.trim());
-}
+function saveKeys() { localStorage.setItem("hf_key", keyInput.value.trim()); }
 function clearChat() { messages = []; document.getElementById("chat").innerHTML = ""; }
 
-function addBubble(role, text) {
+function addBubble(role, text, label) {
   const div = document.createElement("div");
   div.className = "msg " + role;
-  div.textContent = text;
+  if (label) {
+    const tag = document.createElement("span");
+    tag.className = "msg-tag";
+    tag.textContent = label;
+    div.appendChild(tag);
+  }
+  const body = document.createElement("div");
+  body.textContent = text;
+  div.appendChild(body);
   const chat = document.getElementById("chat");
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return div;
+  return body;
 }
 
 async function sendMessage() {
@@ -181,38 +142,32 @@ async function sendMessage() {
   const text = promptEl.value.trim();
   const key = keyInput.value.trim();
   const modelId = verSel.value;
+  const modelName = verSel.options.item(verSel.selectedIndex).text;
   if (!text) return;
 
-  if (currentFamily === "Алиса AI / ГигаЧат") {
-    addBubble("user", text);
-    promptEl.value = "";
-    addBubble("assistant", "Для прямого вызова Алисы AI (Yandex Cloud) или ГигаЧата (SberDevices) нужен их облачный токен + Folder ID. Все остальные 8 вкладок работают напрямую по вашему ключу OpenRouter!");
-    return;
-  }
-
-  if (!key) { alert("Нажмите '🔑 Ключи' вверху и вставьте API-ключ OpenRouter!"); toggleKey(); return; }
+  if (!key) { alert("Нажмите '🔑 Токен HF' и вставьте токен Hugging Face (hf_...)!"); toggleKey(); return; }
 
   promptEl.value = "";
   messages.push({ role: "user", content: text });
   addBubble("user", text);
-  const botBubble = addBubble("assistant", "Думаю...");
+  const botBody = addBubble("assistant", "Думаю...", modelName);
 
   try {
-    const res = await fetch("https://openrouter.ai", {
+    const res = await fetch("https://huggingface.co", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + key,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ model: modelId, messages: messages })
+      body: JSON.stringify({ model: modelId, messages: messages, max_tokens: 2048 })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const reply = data.choices[0].message.content;
-    botBubble.textContent = reply;
+    const reply = data.choices.at(0).message.content;
+    botBody.textContent = reply;
     messages.push({ role: "assistant", content: reply });
   } catch (e) {
-    botBubble.textContent = "Ошибка: " + e.message;
+    botBody.textContent = "Ошибка: " + e.message;
   }
 }
 </script>
