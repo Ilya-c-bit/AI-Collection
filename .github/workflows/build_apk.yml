@@ -15,80 +15,55 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Generate Android Project & Build APK
+      - name: Build APK directly with Android SDK
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          mkdir -p app/src/main/assets app/src/main/java/com/my/aihub
-          cp index.html app/src/main/assets/index.html
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          PLATFORM=$(ls -d $ANDROID_HOME/platforms/android-* | sort -V | tail -n 1)/android.jar
 
-          echo 'pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }' > settings.gradle
-          echo 'dependencyResolutionManagement { repositories { google(); mavenCentral() } }' >> settings.gradle
-          echo 'rootProject.name = "MyAIHub"' >> settings.gradle
-          echo 'include ":app"' >> settings.gradle
+          mkdir -p build/gen build/obj build/apk assets src/com/my/aihub
+          cp index.html assets/index.html
 
-          echo 'plugins {' > build.gradle
-          echo '    id "com.android.application" version "8.2.2" apply false' >> build.gradle
-          echo '    id "org.jetbrains.kotlin.android" version "1.9.22" apply false' >> build.gradle
-          echo '}' >> build.gradle
+          echo '<?xml version="1.0" encoding="utf-8"?>' > AndroidManifest.xml
+          echo '<manifest xmlns:android="http://android.com" package="com.my.aihub" android:versionCode="1" android:versionName="1.0">' >> AndroidManifest.xml
+          echo '    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />' >> AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> AndroidManifest.xml
+          echo '    <application android:label="ИИ-Хаб" android:theme="@android:style/Theme.NoTitleBar" android:usesCleartextTraffic="true">' >> AndroidManifest.xml
+          echo '        <activity android:name=".MainActivity" android:exported="true">' >> AndroidManifest.xml
+          echo '            <intent-filter>' >> AndroidManifest.xml
+          echo '                <action android:name="android.intent.action.MAIN" />' >> AndroidManifest.xml
+          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> AndroidManifest.xml
+          echo '            </intent-filter>' >> AndroidManifest.xml
+          echo '        </activity>' >> AndroidManifest.xml
+          echo '    </application>' >> AndroidManifest.xml
+          echo '</manifest>' >> AndroidManifest.xml
 
-          echo 'org.gradle.jvmargs=-Xmx2048m' > gradle.properties
+          echo 'package com.my.aihub;' > src/com/my/aihub/MainActivity.java
+          echo 'import android.app.Activity;' >> src/com/my/aihub/MainActivity.java
+          echo 'import android.os.Bundle;' >> src/com/my/aihub/MainActivity.java
+          echo 'import android.webkit.WebView;' >> src/com/my/aihub/MainActivity.java
+          echo 'import android.webkit.WebViewClient;' >> src/com/my/aihub/MainActivity.java
+          echo 'public class MainActivity extends Activity {' >> src/com/my/aihub/MainActivity.java
+          echo '    @Override protected void onCreate(Bundle savedInstanceState) {' >> src/com/my/aihub/MainActivity.java
+          echo '        super.onCreate(savedInstanceState);' >> src/com/my/aihub/MainActivity.java
+          echo '        WebView webView = new WebView(this);' >> src/com/my/aihub/MainActivity.java
+          echo '        webView.getSettings().setJavaScriptEnabled(true);' >> src/com/my/aihub/MainActivity.java
+          echo '        webView.getSettings().setDomStorageEnabled(true);' >> src/com/my/aihub/MainActivity.java
+          echo '        webView.setWebViewClient(new WebViewClient());' >> src/com/my/aihub/MainActivity.java
+          echo '        webView.loadUrl("file:///android_asset/index.html");' >> src/com/my/aihub/MainActivity.java
+          echo '        setContentView(webView);' >> src/com/my/aihub/MainActivity.java
+          echo '    }' >> src/com/my/aihub/MainActivity.java
+          echo '}' >> src/com/my/aihub/MainActivity.java
 
-          echo 'plugins {' > app/build.gradle
-          echo '    id "com.android.application"' >> app/build.gradle
-          echo '    id "org.jetbrains.kotlin.android"' >> app/build.gradle
-          echo '}' >> app/build.gradle
-          echo 'android {' >> app/build.gradle
-          echo '    namespace "com.my.aihub"' >> app/build.gradle
-          echo '    compileSdk 34' >> app/build.gradle
-          echo '    defaultConfig {' >> app/build.gradle
-          echo '        applicationId "com.my.aihub"' >> app/build.gradle
-          echo '        minSdk 24' >> app/build.gradle
-          echo '        targetSdk 34' >> app/build.gradle
-          echo '        versionCode 1' >> app/build.gradle
-          echo '        versionName "1.0"' >> app/build.gradle
-          echo '    }' >> app/build.gradle
-          echo '    compileOptions {' >> app/build.gradle
-          echo '        sourceCompatibility JavaVersion.VERSION_17' >> app/build.gradle
-          echo '        targetCompatibility JavaVersion.VERSION_17' >> app/build.gradle
-          echo '    }' >> app/build.gradle
-          echo '    kotlinOptions { jvmTarget = "17" }' >> app/build.gradle
-          echo '}' >> app/build.gradle
-
-          echo '<?xml version="1.0" encoding="utf-8"?>' > app/src/main/AndroidManifest.xml
-          echo '<manifest xmlns:android="http://android.com">' >> app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> app/src/main/AndroidManifest.xml
-          echo '    <application android:label="ИИ-Хаб" android:theme="@android:style/Theme.NoTitleBar" android:usesCleartextTraffic="true">' >> app/src/main/AndroidManifest.xml
-          echo '        <activity android:name=".MainActivity" android:exported="true">' >> app/src/main/AndroidManifest.xml
-          echo '            <intent-filter>' >> app/src/main/AndroidManifest.xml
-          echo '                <action android:name="android.intent.action.MAIN" />' >> app/src/main/AndroidManifest.xml
-          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> app/src/main/AndroidManifest.xml
-          echo '            </intent-filter>' >> app/src/main/AndroidManifest.xml
-          echo '        </activity>' >> app/src/main/AndroidManifest.xml
-          echo '    </application>' >> app/src/main/AndroidManifest.xml
-          echo '</manifest>' >> app/src/main/AndroidManifest.xml
-
-          echo 'package com.my.aihub' > app/src/main/java/com/my/aihub/MainActivity.kt
-          echo 'import android.app.Activity' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo 'import android.os.Bundle' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo 'import android.webkit.WebView' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo 'import android.webkit.WebViewClient' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo 'class MainActivity : Activity() {' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '    override fun onCreate(savedInstanceState: Bundle?) {' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        super.onCreate(savedInstanceState)' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        val webView = WebView(this)' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        webView.settings.javaScriptEnabled = true' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        webView.settings.domStorageEnabled = true' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        webView.webViewClient = WebViewClient()' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        webView.loadUrl("file:///android_asset/index.html")' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '        setContentView(webView)' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '    }' >> app/src/main/java/com/my/aihub/MainActivity.kt
-          echo '}' >> app/src/main/java/com/my/aihub/MainActivity.kt
-
-          gradle wrapper --gradle-version 8.5
-          ./gradlew assembleDebug
+          $BUILD_TOOLS/aapt package -f -m -J build/gen -S . -M AndroidManifest.xml -I $PLATFORM -A assets -F build/apk/unsigned.apk
+          javac -source 1.8 -target 1.8 -bootclasspath $PLATFORM -classpath $PLATFORM -d build/obj src/com/my/aihub/MainActivity.java
+          $BUILD_TOOLS/d8 --lib $PLATFORM --output build/apk build/obj/com/my/aihub/MainActivity.class
+          cd build/apk && zip -u unsigned.apk classes.dex && cd ../..
+          $BUILD_TOOLS/zipalign -f 4 build/apk/unsigned.apk build/apk/aligned.apk
+          keytool -genkeypair -validity 10000 -dname "CN=AIHub" -keystore debug.keystore -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048
+          $BUILD_TOOLS/apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android --out app-debug.apk build/apk/aligned.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: My-AI-Hub-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app-debug.apk
