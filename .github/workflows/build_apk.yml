@@ -20,7 +20,7 @@ jobs:
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           PLATFORM=$(ls -d $ANDROID_HOME/platforms/android-* | sort -V | tail -n 1)/android.jar
 
-          mkdir -p build/gen build/obj build/apk assets src/com/my/aihub
+          mkdir -p res build/gen build/obj build/apk assets src/com/my/aihub
           cp index.html assets/index.html
 
           echo '<?xml version="1.0" encoding="utf-8"?>' > AndroidManifest.xml
@@ -54,7 +54,7 @@ jobs:
           echo '    }' >> src/com/my/aihub/MainActivity.java
           echo '}' >> src/com/my/aihub/MainActivity.java
 
-          $BUILD_TOOLS/aapt package -f -m -J build/gen -S . -M AndroidManifest.xml -I $PLATFORM -A assets -F build/apk/unsigned.apk
+          $BUILD_TOOLS/aapt package -f -m -J build/gen -S res -M AndroidManifest.xml -I $PLATFORM -A assets -F build/apk/unsigned.apk
           javac -source 1.8 -target 1.8 -bootclasspath $PLATFORM -classpath $PLATFORM -d build/obj src/com/my/aihub/MainActivity.java
           $BUILD_TOOLS/d8 --lib $PLATFORM --output build/apk build/obj/com/my/aihub/MainActivity.class
           cd build/apk && zip -u unsigned.apk classes.dex && cd ../..
