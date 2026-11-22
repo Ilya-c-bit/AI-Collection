@@ -15,10 +15,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
       - name: Generate Android Project & Build APK
         run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           mkdir -p app/src/main/assets app/src/main/java/com/my/aihub
           cp index.html app/src/main/assets/index.html
 
